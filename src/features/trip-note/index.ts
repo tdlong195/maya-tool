@@ -1,0 +1,1 @@
+export { TripNoteFeature } from "./TripNoteFeature";

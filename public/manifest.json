@@ -1,0 +1,16 @@
+{
+  "short_name": "Maya Tran",
+  "name": "Maya Tran",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/281/281760.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/apps/28171495-5351-4b30-9c2d-4d2914188255?showAssistant=true&showCode=true",
+  "scope": "/apps/28171495-5351-4b30-9c2d-4d2914188255?showAssistant=true&showCode=true",
+  "display": "standalone",
+  "theme_color": "#4f46e5",
+  "background_color": "#ffffff"
+}

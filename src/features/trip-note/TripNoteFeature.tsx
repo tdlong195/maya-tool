@@ -1,0 +1,237 @@
+import { AlertCircle, FileText, Loader2, Sparkles, Upload } from "lucide-react";
+import { motion } from "motion/react";
+import { useRef, useState } from "react";
+import PizZip from "pizzip";
+import { saveAs } from "file-saver";
+
+export function TripNoteFeature() {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const acceptFile = (nextFile?: File) => {
+    if (!nextFile) return;
+    if (!nextFile.name.endsWith(".docx") && !nextFile.name.endsWith(".doc")) {
+      setError("Vui lòng chọn file .docx hoặc .doc");
+      return;
+    }
+    setFile(nextFile);
+    setError(null);
+  };
+
+  const processTripNote = async () => {
+    if (!file) return;
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      if (file.name.toLowerCase().endsWith(".doc")) {
+        throw new Error(
+          "Hệ thống chỉ hỗ trợ xử lý file .docx chuyên sâu. Vui lòng lưu file .doc thành .docx trước khi thực hiện.",
+        );
+      }
+
+      const zip = new PizZip(await file.arrayBuffer());
+      const parser = new DOMParser();
+      const serializer = new XMLSerializer();
+
+      const processXmlContent = (xmlString: string, removeSections = false) => {
+        const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+
+        const drawings = xmlDoc.getElementsByTagName("w:drawing");
+        while (drawings.length > 0) drawings[0].parentNode?.removeChild(drawings[0]);
+
+        const picts = xmlDoc.getElementsByTagName("w:pict");
+        while (picts.length > 0) picts[0].parentNode?.removeChild(picts[0]);
+
+        if (removeSections) {
+          const body = xmlDoc.getElementsByTagName("w:body")[0];
+          if (body) {
+            const children = Array.from(body.childNodes);
+            let removing = false;
+            const keywords = ["TRIP PRICING", "ACCOMMODATION"];
+
+            children.forEach((child) => {
+              const textContent = child.textContent || "";
+              const isHeaderParagraph =
+                child.nodeName === "w:p" &&
+                /^[ \t]*[IVX0-9]{1,5}\.\s+|[0-9]{1,2}\.\s+/i.test(textContent);
+
+              if (isHeaderParagraph) {
+                const foundKeyword = keywords.some((kw) =>
+                  textContent.toUpperCase().includes(kw),
+                );
+                if (foundKeyword) removing = true;
+                else if (removing) removing = false;
+              }
+
+              if (removing) body.removeChild(child);
+            });
+          }
+        }
+
+        return serializer.serializeToString(xmlDoc);
+      };
+
+      const docPath = "word/document.xml";
+      if (zip.file(docPath)) {
+        zip.file(docPath, processXmlContent(zip.file(docPath)!.asText(), true));
+      }
+
+      Object.keys(zip.files).forEach((path) => {
+        if (path.startsWith("word/header") || path.startsWith("word/footer")) {
+          zip.file(path, processXmlContent(zip.file(path)!.asText(), false));
+        }
+      });
+
+      Object.keys(zip.files).forEach((path) => {
+        if (path.startsWith("word/media/")) delete zip.files[path];
+      });
+
+      Object.keys(zip.files).forEach((path) => {
+        if (!path.endsWith(".xml.rels")) return;
+        const relFile = zip.file(path);
+        if (!relFile) return;
+        zip.file(
+          path,
+          relFile
+            .asText()
+            .replace(
+              /<Relationship [^>]*Type="http:\/\/schemas\.openxmlformats\.org\/officeDocument\/2006\/relationships\/image"[^>]*\/>/g,
+              "",
+            ),
+        );
+      });
+
+      saveAs(zip.generate({ type: "blob", compression: "DEFLATE" }), "trip_note.docx");
+    } catch (err: any) {
+      console.error("Trip note processing error:", err);
+      setError(err.message || "Có lỗi xảy ra khi xử lý file trip note.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <motion.div
+      key="trip-note-mode"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="max-w-4xl mx-auto"
+    >
+      <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-secondary/5 border border-black/5 p-8 md:p-12">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-serif italic text-secondary mb-3">
+            Xử lý Trip Note
+          </h2>
+          <p className="text-slate-500">
+            Remove toàn bộ hình ảnh trong file Trip Note để tối ưu dung lượng và định dạng.
+          </p>
+        </div>
+
+        <div
+          className={`relative group cursor-pointer transition-all duration-500 rounded-[2rem] border-2 border-dashed flex flex-col items-center justify-center py-16 px-6 ${
+            isDragging
+              ? "border-primary bg-primary/5 scale-[0.99] ring-8 ring-primary/5"
+              : file
+                ? "border-secondary/30 bg-secondary/5"
+                : "border-slate-200 hover:border-primary/50 hover:bg-slate-50"
+          }`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragging(false);
+            acceptFile(e.dataTransfer.files[0]);
+          }}
+          onClick={() => inputRef.current?.click()}
+        >
+          <input
+            type="file"
+            ref={inputRef}
+            className="hidden"
+            accept=".doc,.docx"
+            onChange={(e) => acceptFile(e.target.files?.[0])}
+          />
+
+          {file ? (
+            <div className="flex flex-col items-center animate-in fade-in zoom-in duration-300">
+              <div className="bg-secondary/10 p-5 rounded-3xl text-secondary mb-4">
+                <FileText size={48} />
+              </div>
+              <span className="font-medium text-secondary text-lg mb-1 max-w-[300px] truncate">
+                {file.name}
+              </span>
+              <span className="text-xs text-slate-400">
+                {(file.size / 1024 / 1024).toFixed(2)} MB
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFile(null);
+                  if (inputRef.current) inputRef.current.value = "";
+                }}
+                className="mt-6 text-sm text-red-500 hover:underline font-medium"
+              >
+                Chọn file khác
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="bg-primary/10 p-5 rounded-3xl text-primary mb-6 transition-transform group-hover:scale-110 duration-300">
+                <Upload size={40} />
+              </div>
+              <p className="text-lg font-medium text-slate-700 mb-2">
+                Kéo thả file Trip Note vào đây
+              </p>
+              <p className="text-sm text-slate-400">Hỗ trợ định dạng .docx và .doc</p>
+            </>
+          )}
+        </div>
+
+        {error && (
+          <div className="mt-6 flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-lg text-sm">
+            <AlertCircle size={16} /> {error}
+          </div>
+        )}
+
+        <div className="mt-12 flex justify-center">
+          <button
+            onClick={processTripNote}
+            disabled={!file || isProcessing}
+            className={`px-12 py-4 rounded-2xl font-bold text-lg flex items-center gap-3 transition-all duration-300 shadow-xl ${
+              !file || isProcessing
+                ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                : "bg-primary text-white hover:scale-105 active:scale-95 shadow-primary/30"
+            }`}
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="animate-spin" size={24} />
+                Đang xử lý...
+              </>
+            ) : (
+              <>
+                <Sparkles size={24} />
+                Xử lý (Remove ảnh)
+              </>
+            )}
+          </button>
+        </div>
+
+        <div className="mt-8 bg-amber-50 rounded-2xl p-4 border border-amber-100 flex gap-3 text-amber-800 text-sm italic">
+          <AlertCircle size={18} className="shrink-0 mt-0.5" />
+          <p>
+            Lưu ý: File .doc cũ có thể bị lỗi khi xử lý. Nếu file của bạn là .doc, hãy Save As sang .docx để đạt hiệu quả tốt nhất.
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
