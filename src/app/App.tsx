@@ -93,7 +93,7 @@ export default function App() {
         <header className="mb-16 text-center space-y-6">
           <div className="relative inline-block">
             <h1 className="text-2xl md:text-2xl font-serif italic font-medium tracking-tight text-secondary relative z-10">
-              Hello Maya Tran<span className="not-italic"> - Contract Tools</span>
+              Hello Maya Tran
             </h1>
           </div>
 
