@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AlertCircle,
   ArrowDown,
@@ -12,6 +12,7 @@ import {
   Download,
   Loader2,
   Upload,
+  UserPlus,
   Users,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -20,7 +21,8 @@ import PizZip from "pizzip";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 import ExcelJS from "exceljs";
-import { ai, localDatabase } from "../../shared/services";
+import { GuideEditorModal } from "../../shared/components";
+import { ai, appDatabase, localDatabase } from "../../shared/services";
 import type { GuideData } from "../../shared/types/domain";
 import { isExpired, removeAccents } from "../../shared/utils";
 
@@ -44,6 +46,7 @@ export function ExistingGuidesFeature() {
   const [guideTourPrograms, setGuideTourPrograms] = useState<{ [key: string]: string }>({});
   const [isExporting, setIsExporting] = useState(false);
   const [isScrolledDown, setIsScrolledDown] = useState(false);
+  const [isAddGuideOpen, setIsAddGuideOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: "success" | "error" }>({ show: false, message: "", type: "success" });
 
@@ -62,6 +65,16 @@ export function ExistingGuidesFeature() {
   };
 
   useEffect(() => {
+    appDatabase
+      .getGuides()
+      .then(setGuideList)
+      .catch((err) => {
+        console.error("Failed to load guides:", err);
+        showToast("Không tải được dữ liệu HDV từ database.", "error");
+      });
+  }, []);
+
+  useEffect(() => {
     const handleScroll = () => {
       if (!tourInfoRef.current) {
         setIsScrolledDown(false);
@@ -75,6 +88,28 @@ export function ExistingGuidesFeature() {
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [selectedGuides.length]);
+
+  useEffect(() => {
+    if (!isAddGuideOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isAddGuideOpen]);
+
+  const handleSaveNewGuide = (guide: GuideData) => {
+    const next = [guide, ...guideList];
+    setGuideList(next);
+    appDatabase.saveGuides(next).catch((err) => {
+      console.error("Failed to save guide:", err);
+      showToast("Không lưu được HDV vào database.", "error");
+    });
+    setIsAddGuideOpen(false);
+    showToast("Đã thêm HDV vào Database.");
+  };
 
   const handleExportTourOrder = async () => {
     if (!tourCode.trim()) {
@@ -411,7 +446,10 @@ export function ExistingGuidesFeature() {
       const worksheet = workbook.Sheets[sheetName];
       const json = XLSX.utils.sheet_to_json(worksheet) as GuideData[];
       setGuideList(json);
-      localDatabase.saveGuides(json);
+      appDatabase.saveGuides(json).catch((err) => {
+        console.error("Failed to save uploaded guides:", err);
+        showToast("Không lưu được danh sách HDV vào database.", "error");
+      });
       setError(null);
     };
     reader.readAsBinaryString(file);
@@ -447,6 +485,22 @@ export function ExistingGuidesFeature() {
       }
     });
   };
+
+  const hasRequiredTourProgram =
+    tourType === "classic" && selectedGuides.length > 1
+      ? selectedGuides.every((guide) =>
+        (guideTourPrograms[guide.Id] || "").trim(),
+      )
+      : tourProgramText.trim();
+
+  const isTourFormComplete =
+    selectedGuides.length > 0 &&
+    tourCode.trim() &&
+    startDate &&
+    endDate &&
+    guestCount &&
+    parseInt(guestCount) > 0 &&
+    hasRequiredTourProgram;
 
   return (
     <>
@@ -563,24 +617,6 @@ export function ExistingGuidesFeature() {
                               Xoá guides đã chọn
                             </button>
                           )}
-                          <button
-                            onClick={() => {
-                              setGuideList([]);
-                              setSelectedGuides([]);
-                              setGuideSearch("");
-                              setCityFilter("");
-                              setStartDate("");
-                              setEndDate("");
-                              setTourProgramText("");
-                              setGuestCount("");
-                              setTourCode("");
-                              setTourType("cruise");
-                              setGuideTourPrograms({});
-                            }}
-                            className="px-4 py-2.5 bg-red-100 text-red-800 hover:bg-red-200 rounded-xl transition-colors text-sm font-medium border border-red-200/50"
-                          >
-                            Xoá file
-                          </button>
                         </div>
                       </div>
 
@@ -623,6 +659,13 @@ export function ExistingGuidesFeature() {
                             Vui lòng nhập tên, ID hoặc chọn thành phố để lọc
                             danh sách HDV.
                           </p>
+                          <button
+                            onClick={() => setIsAddGuideOpen(true)}
+                            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20"
+                          >
+                            <UserPlus size={18} />
+                            Thêm mới HDV
+                          </button>
                         </div>
                       ) : (
                         <table className="w-full text-left border-collapse">
@@ -766,8 +809,19 @@ export function ExistingGuidesFeature() {
                                     colSpan={7}
                                     className="px-6 py-20 text-center text-gray-500"
                                   >
-                                    Không tìm thấy hướng dẫn viên nào khớp với tìm
-                                    kiếm.
+                                    <div className="flex flex-col items-center gap-4">
+                                      <div>
+                                        Không tìm thấy hướng dẫn viên nào khớp với tìm
+                                        kiếm.
+                                      </div>
+                                      <button
+                                        onClick={() => setIsAddGuideOpen(true)}
+                                        className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20"
+                                      >
+                                        <UserPlus size={18} />
+                                        Thêm mới HDV
+                                      </button>
+                                    </div>
                                   </td>
                                 </tr>
                               )}
@@ -801,11 +855,7 @@ export function ExistingGuidesFeature() {
                           className="p-8 bg-gray-50 border-t border-gray-100"
                         >
                           <div className="max-w-2xl mx-auto">
-                            {(!guestCount ||
-                              !startDate ||
-                              !endDate ||
-                              !tourCode ||
-                              !tourProgramText) && (
+                            {!isTourFormComplete && (
                                 <div className="flex items-center gap-2 text-red-500 bg-red-50 px-6 py-3 rounded-2xl border border-red-100 animate-pulse">
                                   <AlertCircle size={20} />
                                   <span className="font-bold">
@@ -999,25 +1049,7 @@ export function ExistingGuidesFeature() {
                               className="mt-8 flex justify-center"
                             >
                               <button
-                                disabled={
-                                  isExporting ||
-                                  !(
-                                    tourCode.trim() &&
-                                    (tourType === "classic" &&
-                                      selectedGuides.length > 1
-                                      ? selectedGuides.every((g) =>
-                                        (
-                                          guideTourPrograms[g.Id] || ""
-                                        ).trim(),
-                                      )
-                                      : tourProgramText.trim()) &&
-                                    selectedGuides.length > 0 &&
-                                    startDate &&
-                                    endDate &&
-                                    guestCount &&
-                                    parseInt(guestCount) > 0
-                                  )
-                                }
+                                disabled={isExporting || !isTourFormComplete}
                                 className="bg-primary text-white px-12 py-4 rounded-full font-bold hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                                 onClick={handleExportTourOrder}
                               >
@@ -1079,6 +1111,14 @@ export function ExistingGuidesFeature() {
           </motion.div>
         )}
       </AnimatePresence>
+      {isAddGuideOpen && (
+        <GuideEditorModal
+          title="Thêm mới HDV"
+          existingGuides={guideList}
+          onClose={() => setIsAddGuideOpen(false)}
+          onSave={handleSaveNewGuide}
+        />
+      )}
     </>
   );
 }

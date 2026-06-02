@@ -1,101 +1,46 @@
 import {
   AlertCircle,
   Calendar,
-  CheckCircle2,
   Database,
   Download,
-  FileText,
-  Loader2,
   Plus,
   Search,
-  Upload,
   Utensils,
+  X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { saveAs } from "file-saver";
-import * as XLSX from "xlsx";
 import type { MenuPlanDay, Restaurant, RestaurantMenu } from "../../shared/types/domain";
-import { localDatabase } from "../../shared/services";
+import { appDatabase, localDatabase } from "../../shared/services";
 import { removeAccents } from "../../shared/utils";
 
-const getVal = (row: any, aliases: string[]) => {
-  for (const alias of aliases) {
-    const key = Object.keys(row).find((candidate) => candidate.toLowerCase().trim() === alias.toLowerCase());
-    if (key) return row[key];
-  }
-  return "";
-};
-
 export function MenuPlannerFeature() {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [menuFile, setMenuFile] = useState<File | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [restaurants, setRestaurants] = useState<Restaurant[]>(() =>
     localDatabase.getRestaurants(),
   );
-  const [menus, setMenus] = useState<RestaurantMenu[]>([]);
+  const [menus, setMenus] = useState<RestaurantMenu[]>(() =>
+    localDatabase.getRestaurantMenus(),
+  );
   const [menuSearch, setMenuSearch] = useState("");
   const [cityFilter, setCityFilter] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [menuPlan, setMenuPlan] = useState<MenuPlanDay[]>([]);
+  const [menuPreviewRestaurantId, setMenuPreviewRestaurantId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const processMenu = async (fileToProcess: File) => {
-    setIsProcessing(true);
-    setError(null);
-
-    try {
-      const workbook = XLSX.read(await fileToProcess.arrayBuffer(), { type: "array" });
-      const ttnhSheetName = workbook.SheetNames.find((name) => name.toUpperCase() === "TTNH");
-      const menuSheetName = workbook.SheetNames.find((name) => name.toUpperCase() === "MENU");
-      if (!ttnhSheetName || !menuSheetName) {
-        throw new Error("File Excel phải có 2 sheet tên là 'TTNH' và 'MENU'.");
-      }
-
-      const ttnhData = XLSX.utils.sheet_to_json(workbook.Sheets[ttnhSheetName]) as any[];
-      const menuData = XLSX.utils.sheet_to_json(workbook.Sheets[menuSheetName]) as any[];
-
-      const parsedRestaurants: Restaurant[] = ttnhData
-        .map((row) => ({
-          id: String(getVal(row, ["ID", "Mã", "Mã nhà hàng"]) || "").trim(),
-          city: String(getVal(row, ["Thành phố", "City", "Tỉnh"]) || "").trim(),
-          name: String(getVal(row, ["Tên nhà hàng", "Restaurant Name", "Tên"]) || "").trim(),
-          address: String(getVal(row, ["Địa chỉ", "Address"]) || "").trim(),
-          phone: String(getVal(row, ["SDT", "SĐT", "Phone", "Số điện thoại"]) || "").trim(),
-          email: String(getVal(row, ["Email"]) || "").trim(),
-        }))
-        .filter((restaurant) => restaurant.id && restaurant.name);
-
-      const parsedMenus: RestaurantMenu[] = menuData
-        .map((row) => ({
-          restaurantId: String(getVal(row, ["ID nhà hàng", "Restaurant ID", "Mã nhà hàng"]) || "").trim(),
-          menuName: String(getVal(row, ["Menu name", "Tên menu", "Menu"]) || "").trim(),
-          detail: String(getVal(row, ["Detail", "Chi tiết", "Nội dung"]) || "").trim(),
-          note: String(getVal(row, ["NOTE", "Ghi chú", "Lưu ý"]) || "").trim(),
-        }))
-        .filter((menu) => menu.restaurantId && menu.menuName);
-
-      if (parsedRestaurants.length === 0) throw new Error("Không tìm thấy dữ liệu nhà hàng hợp lệ trong sheet TTNH.");
-
-      setRestaurants(parsedRestaurants);
-      localDatabase.saveRestaurants(parsedRestaurants);
-      setMenus(parsedMenus);
-    } catch (err: any) {
-      console.error("Menu processing error:", err);
-      setError(err.message || "Có lỗi xảy ra khi xử lý file menu.");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const acceptFile = (file?: File) => {
-    if (!file) return;
-    setMenuFile(file);
-    processMenu(file);
-  };
+  useEffect(() => {
+    Promise.all([appDatabase.getRestaurants(), appDatabase.getRestaurantMenus()])
+      .then(([nextRestaurants, nextMenus]) => {
+        setRestaurants(nextRestaurants);
+        setMenus(nextMenus);
+      })
+      .catch((err) => {
+        console.error("Failed to load menu database:", err);
+        setError("Không tải được dữ liệu nhà hàng/menu từ database.");
+      });
+  }, []);
 
   const generateMenuPlan = () => {
     if (!startDate || !endDate) return;
@@ -245,6 +190,23 @@ export function MenuPlannerFeature() {
     const name = removeAccents(restaurant.name.toLowerCase());
     return (!menuSearch || name.includes(search)) && (!cityFilter || restaurant.city === cityFilter);
   });
+  const previewRestaurant = restaurants.find(
+    (restaurant) => restaurant.id === menuPreviewRestaurantId,
+  );
+  const previewMenus = menus.filter(
+    (menu) => menu.restaurantId === menuPreviewRestaurantId,
+  );
+
+  useEffect(() => {
+    if (!menuPreviewRestaurantId) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuPreviewRestaurantId]);
 
   return (
     <motion.div
@@ -256,51 +218,6 @@ export function MenuPlannerFeature() {
       className="space-y-8"
     >
       <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-secondary/5 border border-black/5">
-        <div
-          className={`bg-white p-12 rounded-[2rem] border-2 border-dashed transition-all flex flex-col items-center text-center group cursor-pointer h-64 justify-center ${
-            isDragging ? "border-primary bg-primary/5" : "border-slate-200 hover:border-primary/50 hover:bg-slate-50"
-          }`}
-          onDragOver={(event) => {
-            event.preventDefault();
-            setIsDragging(true);
-          }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={(event) => {
-            event.preventDefault();
-            setIsDragging(false);
-            acceptFile(event.dataTransfer.files[0]);
-          }}
-          onClick={() => inputRef.current?.click()}
-        >
-          <input
-            ref={inputRef}
-            type="file"
-            className="hidden"
-            accept=".xlsx,.xls"
-            onChange={(event) => {
-              acceptFile(event.target.files?.[0]);
-              event.target.value = "";
-            }}
-          />
-          {isProcessing ? (
-            <>
-              <Loader2 size={40} className="animate-spin text-primary mb-4" />
-              <p className="font-bold text-secondary">Đang xử lý menu...</p>
-            </>
-          ) : menuFile ? (
-            <>
-              <CheckCircle2 size={40} className="text-green-600 mb-4" />
-              <p className="font-medium text-gray-900 truncate max-w-[300px]">{menuFile.name}</p>
-            </>
-          ) : (
-            <>
-              <Upload size={40} className="text-primary mb-4" />
-              <h3 className="font-bold text-secondary mb-1">Kéo thả file Excel menu</h3>
-              <p className="text-xs text-gray-500">File cần có sheet TTNH và MENU</p>
-            </>
-          )}
-        </div>
-
         <AnimatePresence>
           {error && (
             <motion.div
@@ -315,7 +232,7 @@ export function MenuPlannerFeature() {
         </AnimatePresence>
 
         {restaurants.length > 0 && (
-          <div className="mt-10 space-y-10">
+          <div className="space-y-10">
             <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
               <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3 mb-6">
                 <Calendar className="text-primary" size={28} /> Tạo lịch menu
@@ -335,44 +252,92 @@ export function MenuPlannerFeature() {
 
             {menuPlan.length > 0 && (
               <div className="space-y-4">
-                {menuPlan.map((day, idx) => (
-                  <div key={day.date} className="p-5 rounded-2xl border border-gray-100 bg-gray-50">
-                    <div className="flex flex-col md:flex-row md:items-center gap-4">
-                      <div className="md:w-44 font-bold text-secondary">
-                        Day {idx + 1}
-                        <div className="text-sm font-normal text-gray-500">{new Date(day.date).toLocaleDateString("vi-VN")}</div>
+                {menuPlan.map((day, idx) => {
+                  const isLunchRequired =
+                    day.option === "lunch" || day.option === "both";
+                  const isDinnerRequired =
+                    day.option === "dinner" || day.option === "both";
+                  const dayHasIssue =
+                    (isLunchRequired &&
+                      (!day.lunchCity ||
+                        !day.lunchRestaurantId ||
+                        !day.lunchMenuName)) ||
+                    (isDinnerRequired &&
+                      (!day.dinnerCity ||
+                        !day.dinnerRestaurantId ||
+                        !day.dinnerMenuName));
+
+                  return (
+                    <div
+                      key={day.date}
+                      className={`rounded-2xl border bg-white shadow-sm overflow-hidden ${
+                        dayHasIssue ? "border-red-200" : "border-slate-200"
+                      }`}
+                    >
+                    <div className="grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)]">
+                      <div className="border-b border-slate-100 bg-slate-50 p-5 xl:border-b-0 xl:border-r">
+                        <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                          Day {idx + 1}
+                        </div>
+                        <div className="mt-1 text-lg font-bold text-secondary">
+                          {new Date(day.date).toLocaleDateString("vi-VN")}
+                        </div>
+                        <select
+                          className="mt-4 w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10"
+                          value={day.option}
+                          onChange={(event) =>
+                            updateMenuPlanDay(idx, {
+                              option: event.target.value as MenuPlanDay["option"],
+                            })
+                          }
+                        >
+                          <option value="both">Cả hai bữa</option>
+                          <option value="lunch">Chỉ bữa trưa</option>
+                          <option value="dinner">Chỉ bữa tối</option>
+                          <option value="na">N/A</option>
+                        </select>
                       </div>
-                      <select className="px-3 py-2 rounded-lg border" value={day.option} onChange={(event) => updateMenuPlanDay(idx, { option: event.target.value as MenuPlanDay["option"] })}>
-                        <option value="both">Cả hai</option>
-                        <option value="lunch">Chỉ trưa</option>
-                        <option value="dinner">Chỉ tối</option>
-                        <option value="na">N/A</option>
-                      </select>
-                      <MealSelectors
-                        label="Trưa"
-                        enabled={day.option === "lunch" || day.option === "both"}
-                        cities={cities}
-                        restaurants={restaurants}
-                        menus={menus}
-                        city={day.lunchCity}
-                        restaurantId={day.lunchRestaurantId}
-                        menuName={day.lunchMenuName}
-                        onChange={(updates) => updateMenuPlanDay(idx, { lunchCity: updates.city, lunchRestaurantId: updates.restaurantId, lunchMenuName: updates.menuName })}
-                      />
-                      <MealSelectors
-                        label="Tối"
-                        enabled={day.option === "dinner" || day.option === "both"}
-                        cities={cities}
-                        restaurants={restaurants}
-                        menus={menus}
-                        city={day.dinnerCity}
-                        restaurantId={day.dinnerRestaurantId}
-                        menuName={day.dinnerMenuName}
-                        onChange={(updates) => updateMenuPlanDay(idx, { dinnerCity: updates.city, dinnerRestaurantId: updates.restaurantId, dinnerMenuName: updates.menuName })}
-                      />
+                      <div
+                        className={`grid gap-4 p-5 ${
+                          day.option === "both"
+                            ? "lg:grid-cols-2"
+                            : "lg:grid-cols-1"
+                        }`}
+                      >
+                        <MealSelectors
+                          label="Trưa"
+                          enabled={day.option === "lunch" || day.option === "both"}
+                          cities={cities}
+                          restaurants={restaurants}
+                          menus={menus}
+                          city={day.lunchCity}
+                          restaurantId={day.lunchRestaurantId}
+                          menuName={day.lunchMenuName}
+                          required={isLunchRequired}
+                          onChange={(updates) => updateMenuPlanDay(idx, { lunchCity: updates.city, lunchRestaurantId: updates.restaurantId, lunchMenuName: updates.menuName })}
+                        />
+                        <MealSelectors
+                          label="Tối"
+                          enabled={day.option === "dinner" || day.option === "both"}
+                          cities={cities}
+                          restaurants={restaurants}
+                          menus={menus}
+                          city={day.dinnerCity}
+                          restaurantId={day.dinnerRestaurantId}
+                          menuName={day.dinnerMenuName}
+                          required={isDinnerRequired}
+                          onChange={(updates) => updateMenuPlanDay(idx, { dinnerCity: updates.city, dinnerRestaurantId: updates.restaurantId, dinnerMenuName: updates.menuName })}
+                        />
+                        {day.option === "na" && (
+                          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm font-bold text-slate-400">
+                            Không sử dụng menu cho ngày này.
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
                 <div className="flex justify-center pt-4">
                   <button
                     onClick={exportMenuPlan}
@@ -386,9 +351,25 @@ export function MenuPlannerFeature() {
             )}
 
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                <Database className="text-primary" size={28} /> Cơ sở dữ liệu Nhà hàng
-              </h2>
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                  <Database className="text-primary" size={28} /> Cơ sở dữ liệu Nhà hàng
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent("hello-maya:navigate", {
+                        detail: { mode: "database", databaseTab: "restaurants" },
+                      }),
+                    );
+                  }}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20"
+                >
+                  <Database size={18} />
+                  Quản lý nhà hàng
+                </button>
+              </div>
               <div className="flex flex-col md:flex-row gap-4 bg-gray-50 p-6 rounded-2xl">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -409,24 +390,112 @@ export function MenuPlannerFeature() {
                 </select>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredRestaurants.map((restaurant) => (
-                  <div key={restaurant.id} className="p-5 rounded-2xl border border-gray-100 bg-white shadow-sm">
-                    <h3 className="font-bold text-secondary flex items-center gap-2">
-                      <Utensils size={18} /> {restaurant.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">{restaurant.city}</p>
-                    <p className="text-sm text-gray-500">{restaurant.address}</p>
-                    <div className="mt-3 text-sm text-gray-700">
-                      {menus.filter((menu) => menu.restaurantId === restaurant.id).length} menu
-                    </div>
-                  </div>
-                ))}
+                {filteredRestaurants.map((restaurant) => {
+                    const restaurantMenus = menus.filter(
+                      (menu) => menu.restaurantId === restaurant.id,
+                    );
+
+                    return (
+                      <button
+                        key={restaurant.id}
+                        type="button"
+                        onClick={() => setMenuPreviewRestaurantId(restaurant.id)}
+                        className="p-5 rounded-2xl border border-gray-100 bg-white text-left shadow-sm transition-all hover:border-primary/30 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/10"
+                      >
+                        <h3 className="font-bold text-secondary flex items-center gap-2">
+                          <Utensils size={18} /> {restaurant.name}
+                        </h3>
+                        <p className="text-sm text-gray-500">{restaurant.city}</p>
+                        <p className="text-sm text-gray-500">{restaurant.address}</p>
+                        <span className="mt-3 inline-flex rounded-xl bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700">
+                          {restaurantMenus.length} menu
+                        </span>
+                      </button>
+                    );
+                })}
               </div>
             </div>
           </div>
         )}
       </div>
+      {previewRestaurant && (
+        <RestaurantMenusModal
+          restaurant={previewRestaurant}
+          menus={previewMenus}
+          onClose={() => setMenuPreviewRestaurantId(null)}
+        />
+      )}
     </motion.div>
+  );
+}
+
+function RestaurantMenusModal({
+  restaurant,
+  menus,
+  onClose,
+}: {
+  restaurant: Restaurant;
+  menus: RestaurantMenu[];
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-slate-950/50 px-4 py-6 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 24, scale: 0.98 }}
+        transition={{ duration: 0.2 }}
+        className="flex max-h-[calc(100vh-3rem)] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-2xl shadow-slate-950/20"
+      >
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
+          <div>
+            <h3 className="text-lg font-bold text-slate-950">
+              {restaurant.name}
+            </h3>
+            <p className="mt-1 text-sm text-slate-500">
+              {restaurant.city}
+              {restaurant.address ? ` · ${restaurant.address}` : ""}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl bg-slate-100 p-2 text-slate-600 hover:bg-slate-200"
+            title="Đóng"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-5">
+          {menus.length > 0 ? (
+            <div className="space-y-4">
+              {menus.map((menu, index) => (
+                <div
+                  key={`${menu.menuName}-${index}`}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                >
+                  <div className="font-bold text-slate-950">{menu.menuName}</div>
+                  {menu.detail && (
+                    <div className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-700">
+                      {menu.detail}
+                    </div>
+                  )}
+                  {menu.note && (
+                    <div className="mt-3 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-600">
+                      Note: {menu.note}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-semibold text-slate-500">
+              Nhà hàng này chưa có menu.
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -439,6 +508,7 @@ function MealSelectors({
   city,
   restaurantId,
   menuName,
+  required,
   onChange,
 }: {
   label: string;
@@ -449,13 +519,33 @@ function MealSelectors({
   city?: string;
   restaurantId?: string;
   menuName?: string;
+  required: boolean;
   onChange: (updates: { city?: string; restaurantId?: string; menuName?: string }) => void;
 }) {
   if (!enabled) return null;
 
+  const restaurantMenus = menus.filter((menu) => menu.restaurantId === restaurantId);
+  const selectedRestaurantHasNoMenus = Boolean(restaurantId) && restaurantMenus.length === 0;
+  const fieldClass = (invalid: boolean) =>
+    `w-full px-3 py-2.5 rounded-xl border bg-white text-sm outline-none focus:ring-4 focus:ring-primary/10 disabled:bg-slate-100 disabled:text-slate-400 ${
+      invalid ? "border-red-300 bg-red-50/40" : "border-slate-200"
+    }`;
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 flex-1">
-      <select className="px-3 py-2 rounded-lg border" value={city || ""} onChange={(event) => onChange({ city: event.target.value, restaurantId: "", menuName: "" })}>
+    <div
+      className={`rounded-2xl border bg-slate-50/70 p-4 ${
+        required &&
+        (!city || !restaurantId || !menuName || selectedRestaurantHasNoMenus)
+          ? "border-red-200"
+          : "border-slate-200"
+      }`}
+    >
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="font-bold text-slate-900">{label}</div>
+        <div className="h-2 w-2 rounded-full bg-primary" />
+      </div>
+      <div className="grid grid-cols-1 gap-3">
+      <select className={fieldClass(required && !city)} value={city || ""} onChange={(event) => onChange({ city: event.target.value, restaurantId: "", menuName: "" })}>
         <option value="">{label}: thành phố</option>
         {cities.map((item) => (
           <option key={item} value={item}>
@@ -463,7 +553,7 @@ function MealSelectors({
           </option>
         ))}
       </select>
-      <select className="px-3 py-2 rounded-lg border" disabled={!city} value={restaurantId || ""} onChange={(event) => onChange({ city, restaurantId: event.target.value, menuName: "" })}>
+      <select className={fieldClass(required && !restaurantId)} disabled={!city} value={restaurantId || ""} onChange={(event) => onChange({ city, restaurantId: event.target.value, menuName: "" })}>
         <option value="">Nhà hàng</option>
         {restaurants
           .filter((restaurant) => restaurant.city === city)
@@ -473,16 +563,25 @@ function MealSelectors({
             </option>
           ))}
       </select>
-      <select className="px-3 py-2 rounded-lg border" disabled={!restaurantId} value={menuName || ""} onChange={(event) => onChange({ city, restaurantId, menuName: event.target.value })}>
+      <select className={fieldClass(required && (!menuName || selectedRestaurantHasNoMenus))} disabled={!restaurantId || selectedRestaurantHasNoMenus} value={menuName || ""} onChange={(event) => onChange({ city, restaurantId, menuName: event.target.value })}>
         <option value="">Menu</option>
-        {menus
-          .filter((menu) => menu.restaurantId === restaurantId)
-          .map((menu, idx) => (
+        {restaurantMenus.map((menu, idx) => (
             <option key={`${menu.menuName}-${idx}`} value={menu.menuName}>
               {menu.menuName}
             </option>
           ))}
       </select>
+      {selectedRestaurantHasNoMenus && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+          Nhà hàng này chưa có menu. Vui lòng thêm menu trong Database trước.
+        </div>
+      )}
+      {required && !selectedRestaurantHasNoMenus && (!city || !restaurantId || !menuName) && (
+        <div className="text-xs font-semibold text-red-600">
+          Vui lòng chọn đủ thành phố, nhà hàng và menu cho bữa {label.toLowerCase()}.
+        </div>
+      )}
+      </div>
     </div>
   );
 }

@@ -1,7 +1,8 @@
-import type { GuideData, Restaurant } from "../types/domain";
+import type { GuideData, Restaurant, RestaurantMenu } from "../types/domain";
 
 const GUIDE_DB_KEY = "contract-auto-filter.guides";
 const RESTAURANT_DB_KEY = "contract-auto-filter.restaurants";
+const RESTAURANT_MENU_DB_KEY = "contract-auto-filter.restaurant-menus";
 
 const readJson = <T>(key: string, fallback: T): T => {
   if (typeof window === "undefined") return fallback;
@@ -26,4 +27,8 @@ export const localDatabase = {
   getRestaurants: () => readJson<Restaurant[]>(RESTAURANT_DB_KEY, []),
   saveRestaurants: (restaurants: Restaurant[]) =>
     writeJson(RESTAURANT_DB_KEY, restaurants),
+  getRestaurantMenus: () =>
+    readJson<RestaurantMenu[]>(RESTAURANT_MENU_DB_KEY, []),
+  saveRestaurantMenus: (menus: RestaurantMenu[]) =>
+    writeJson(RESTAURANT_MENU_DB_KEY, menus),
 };

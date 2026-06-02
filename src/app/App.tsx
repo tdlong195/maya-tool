@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Building2,
   Calendar,
@@ -46,19 +46,32 @@ const modeButtons: Array<{
   icon: typeof UserPlus;
 }> = [
     { mode: "new", label: "HDV Mới", icon: UserPlus },
-    { mode: "database", label: "Database", icon: Building2 },
-    { mode: "existing", label: "Hợp đồng và lệnh", icon: Database },
+    { mode: "existing", label: "Hợp đồng", icon: Database },
     { mode: "guest_list", label: "Guest List", icon: Users },
     // { mode: "translate", label: "Translate", icon: FileText },
     { mode: "cruise_ship", label: "Tàu Biển", icon: Ship },
-    { mode: "menu", label: "Thực Đơn", icon: Calendar },
+    { mode: "menu", label: "Menu", icon: Calendar },
     { mode: "car_service", label: "Xe", icon: Car },
     { mode: "format_menu", label: "Format Menu", icon: Utensils },
-    { mode: "trip_note", label: "Làm trip note", icon: ImageIcon },
+    { mode: "trip_note", label: "Trip note", icon: ImageIcon },
   ];
 
 export default function App() {
   const [mode, setMode] = useState<AppMode>("existing");
+  const isDatabaseMode = mode === "database";
+
+  useEffect(() => {
+    const handleNavigate = (event: Event) => {
+      const detail = (event as CustomEvent<{ mode?: AppMode; databaseTab?: string }>).detail;
+      if (detail?.databaseTab) {
+        window.localStorage.setItem("hello-maya.database-tab", detail.databaseTab);
+      }
+      if (detail?.mode) setMode(detail.mode);
+    };
+
+    window.addEventListener("hello-maya:navigate", handleNavigate);
+    return () => window.removeEventListener("hello-maya:navigate", handleNavigate);
+  }, []);
 
   const renderFeature = () => {
     switch (mode) {
@@ -87,35 +100,66 @@ export default function App() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-bg-warm text-slate-900 font-sans p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        <header className="mb-16 text-center space-y-6">
-          <div className="relative inline-block">
-            <h1 className="text-2xl md:text-2xl font-serif italic font-medium tracking-tight text-secondary relative z-10">
-              Hello Maya
-            </h1>
+  if (isDatabaseMode) {
+    return (
+      <div className="min-h-screen bg-slate-100 text-slate-900 font-sans">
+        <div className="mx-auto max-w-[1600px] px-4 py-0 md:px-6">
+          <TopModeMenu mode={mode} onModeChange={setMode} />
+          <div className="pt-2">
+            <AnimatePresence mode="wait">{renderFeature()}</AnimatePresence>
           </div>
+        </div>
+      </div>
+    );
+  }
 
-          <div className="flex flex-wrap justify-center gap-2 p-1.5 bg-white/60 backdrop-blur-md rounded-[2rem] border border-black/5 shadow-xl shadow-secondary/5 transition-all max-w-fit mx-auto">
-            {modeButtons.map(({ mode: buttonMode, label, icon: Icon }) => (
-              <button
-                key={buttonMode}
-                onClick={() => setMode(buttonMode)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 ${mode === buttonMode
-                  ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105"
-                  : "text-slate-500 hover:text-secondary hover:bg-white/80"
-                  }`}
-              >
-                <Icon size={18} />
-                {label}
-              </button>
-            ))}
-          </div>
-        </header>
+  return (
+    <div className="min-h-screen bg-bg-warm text-slate-900 font-sans p-4 md:p-0">
+      <div className="max-w-5xl mx-auto">
+        <TopModeMenu mode={mode} onModeChange={setMode} />
 
         <AnimatePresence mode="wait">{renderFeature()}</AnimatePresence>
       </div>
     </div>
+  );
+}
+
+function TopModeMenu({
+  mode,
+  onModeChange,
+}: {
+  mode: AppMode;
+  onModeChange: (mode: AppMode) => void;
+}) {
+  return (
+    <header className="sticky top-0 z-30 mb-4 pt-2">
+      <div className="mx-auto flex max-w-fit flex-wrap justify-center gap-0 rounded-[2rem] border border-black/5 bg-white/80 p-1.5 shadow-xl shadow-secondary/5 backdrop-blur-md transition-all">
+        <button
+          type="button"
+          onClick={() => onModeChange("database")}
+          className={`flex items-center gap-2 rounded-2xl p-2 text-sm font-semibold transition-all duration-300 ${mode === "database"
+            ? "bg-primary text-white shadow-lg shadow-primary/20"
+            : "text-slate-500 hover:bg-white/80 hover:text-secondary"
+            }`}
+        >
+          <Building2 size={16} />
+          DB
+        </button>
+        {modeButtons.map(({ mode: buttonMode, label, icon: Icon }) => (
+          <button
+            key={buttonMode}
+            type="button"
+            onClick={() => onModeChange(buttonMode)}
+            className={`flex items-center gap-2 rounded-2xl p-2 text-sm font-semibold transition-all duration-300 ${mode === buttonMode
+              ? "bg-primary text-white shadow-lg shadow-primary/20"
+              : "text-slate-500 hover:bg-white/80 hover:text-secondary"
+              }`}
+          >
+            <Icon size={16} />
+            {label}
+          </button>
+        ))}
+      </div>
+    </header>
   );
 }
