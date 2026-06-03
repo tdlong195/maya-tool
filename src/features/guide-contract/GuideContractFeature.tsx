@@ -238,11 +238,16 @@ export function GuideContractFeature() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
+              className="space-y-5"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {/* ID Card Upload */}
                 <div
-                  className={`bg-white p-6 rounded-3xl shadow-sm border transition-all flex flex-col items-center text-center relative overflow-hidden group outline-none focus:ring-2 focus:ring-amber-500/20 ${isDraggingId ? "border-amber-500 bg-amber-50 ring-4 ring-amber-500/10" : "border-black/5"}`}
+                  className={`relative flex min-h-56 flex-col items-center overflow-hidden rounded-2xl border bg-white p-5 text-center shadow-sm transition-all outline-none focus:ring-4 focus:ring-primary/10 ${
+                    isDraggingId
+                      ? "border-amber-500 bg-amber-50 ring-4 ring-amber-500/10"
+                      : "border-black/5"
+                  }`}
                   onDragOver={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -274,7 +279,7 @@ export function GuideContractFeature() {
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button
                           onClick={() => idInputRef.current?.click()}
-                          className="bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium border border-white/30"
+                          className="rounded-xl border border-white/30 bg-white/20 px-4 py-2 text-sm font-bold text-white backdrop-blur-md"
                         >
                           Thay đổi ảnh
                         </button>
@@ -283,14 +288,24 @@ export function GuideContractFeature() {
                   ) : (
                     <>
                       <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 transition-colors ${isDraggingId ? "bg-amber-600 text-white" : "bg-amber-50 text-amber-600"}`}
+                        className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl transition-colors ${
+                          isDraggingId
+                            ? "bg-amber-600 text-white"
+                            : "bg-amber-50 text-amber-600"
+                        }`}
                       >
                         <ImageIcon size={24} />
                       </div>
-                      <h3 className="font-medium mb-2">Ảnh CCCD</h3>
+                      <h3 className="mb-2 font-bold text-slate-950">Ảnh CCCD</h3>
                       <button
                         onClick={() => idInputRef.current?.click()}
-                        className={`w-full py-3 px-4 rounded-xl border-2 border-dashed transition-all ${idCard ? "border-emerald-500 bg-emerald-50 text-emerald-700" : isDraggingId ? "border-amber-500 bg-amber-100/50" : "border-gray-200 hover:border-amber-400"}`}
+                        className={`w-full rounded-xl border-2 border-dashed px-4 py-3 text-sm font-bold transition-all ${
+                          idCard
+                            ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                            : isDraggingId
+                              ? "border-amber-500 bg-amber-100/50"
+                              : "border-slate-200 hover:border-amber-400"
+                        }`}
                       >
                         {idCard ? (
                           <span className="flex items-center justify-center gap-2">
@@ -320,7 +335,11 @@ export function GuideContractFeature() {
 
                 {/* Guide Card Upload */}
                 <div
-                  className={`bg-white p-6 rounded-3xl shadow-sm border transition-all flex flex-col items-center text-center relative overflow-hidden group outline-none focus:ring-2 focus:ring-emerald-500/20 ${isDraggingGuide ? "border-emerald-500 bg-emerald-50 ring-4 ring-emerald-500/10" : "border-black/5"}`}
+                  className={`relative flex min-h-56 flex-col items-center overflow-hidden rounded-2xl border bg-white p-5 text-center shadow-sm transition-all outline-none focus:ring-4 focus:ring-primary/10 ${
+                    isDraggingGuide
+                      ? "border-emerald-500 bg-emerald-50 ring-4 ring-emerald-500/10"
+                      : "border-black/5"
+                  }`}
                   onDragOver={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -357,7 +376,7 @@ export function GuideContractFeature() {
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button
                           onClick={() => guideInputRef.current?.click()}
-                          className="bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium border border-white/30"
+                          className="rounded-xl border border-white/30 bg-white/20 px-4 py-2 text-sm font-bold text-white backdrop-blur-md"
                         >
                           Thay đổi ảnh
                         </button>
@@ -366,14 +385,24 @@ export function GuideContractFeature() {
                   ) : (
                     <>
                       <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 transition-colors ${isDraggingGuide ? "bg-emerald-600 text-white" : "bg-emerald-50 text-emerald-600"}`}
+                        className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl transition-colors ${
+                          isDraggingGuide
+                            ? "bg-emerald-600 text-white"
+                            : "bg-emerald-50 text-emerald-600"
+                        }`}
                       >
                         <ImageIcon size={24} />
                       </div>
-                      <h3 className="font-medium mb-2">Thẻ Hướng Dẫn Viên</h3>
+                      <h3 className="mb-2 font-bold text-slate-950">Thẻ Hướng Dẫn Viên</h3>
                       <button
                         onClick={() => guideInputRef.current?.click()}
-                        className={`w-full py-3 px-4 rounded-xl border-2 border-dashed transition-all ${guideCard ? "border-emerald-500 bg-emerald-50 text-emerald-700" : isDraggingGuide ? "border-emerald-500 bg-emerald-100/50" : "border-gray-200 hover:border-emerald-400"}`}
+                        className={`w-full rounded-xl border-2 border-dashed px-4 py-3 text-sm font-bold transition-all ${
+                          guideCard
+                            ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                            : isDraggingGuide
+                              ? "border-emerald-500 bg-emerald-100/50"
+                              : "border-slate-200 hover:border-emerald-400"
+                        }`}
                       >
                         {guideCard ? (
                           <span className="flex items-center justify-center gap-2">
@@ -403,11 +432,16 @@ export function GuideContractFeature() {
               </div>
 
               {/* Manual Inputs Section */}
-              <div className="bg-white p-8 rounded-[2rem] shadow-xl shadow-secondary/5 border border-black/5 mb-8">
-                <h2 className="text-xl font-serif italic text-secondary mb-6">
-                  Thông tin bổ sung
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+                <div className="mb-4">
+                  <div className="text-xs font-bold uppercase tracking-wider text-primary">
+                    Bổ sung
+                  </div>
+                  <h2 className="mt-1 text-xl font-bold text-slate-950">
+                    Thông tin bổ sung
+                  </h2>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-xs uppercase tracking-wider text-slate-400 font-bold ml-1">
                       Số điện thoại (sdt)
@@ -417,7 +451,7 @@ export function GuideContractFeature() {
                       value={sdt}
                       onChange={(e) => setSdt(e.target.value)}
                       placeholder="Nhập số điện thoại..."
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-300"
+                      className="h-11 w-full rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 outline-none transition-all placeholder:text-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10"
                     />
                   </div>
                   <div className="space-y-2">
@@ -429,18 +463,18 @@ export function GuideContractFeature() {
                       value={stk}
                       onChange={(e) => setStk(e.target.value)}
                       placeholder="Nhập số tài khoản..."
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-300"
+                      className="h-11 w-full rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 outline-none transition-all placeholder:text-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col items-center gap-4">
-                <div className="flex flex-wrap justify-center gap-4">
+              <div className="flex flex-col items-center gap-4 rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+                <div className="flex flex-wrap justify-center gap-3">
                   <button
                     onClick={processContract}
                     disabled={isProcessing || !idCard || !guideCard}
-                    className="bg-primary text-white px-12 py-4 rounded-full font-bold text-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-3 shadow-2xl shadow-primary/30"
+                    className="inline-flex h-12 items-center gap-3 rounded-xl bg-primary px-8 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 disabled:opacity-50"
                   >
                     {isProcessing ? (
                       <>
@@ -448,7 +482,7 @@ export function GuideContractFeature() {
                       </>
                     ) : (
                       <>
-                        <Sparkles size={22} className="text-accent" />
+                        <Sparkles size={20} className="text-accent" />
                         Trích xuất thông tin HDV
                       </>
                     )}
@@ -457,7 +491,7 @@ export function GuideContractFeature() {
                   {(idCard || guideCard || extractedInfo || sdt || stk) && (
                     <button
                       onClick={handleClearNewGuide}
-                      className="bg-white text-red-600 border border-red-200 px-8 py-4 rounded-full font-medium text-lg hover:bg-red-50 active:scale-95 transition-all flex items-center gap-3 shadow-md"
+                      className="inline-flex h-12 items-center gap-3 rounded-xl border border-red-200 bg-white px-6 text-sm font-bold text-red-600 shadow-sm transition-colors hover:bg-red-50"
                     >
                       <Trash2 size={20} /> Xoá tất cả
                     </button>
@@ -470,7 +504,7 @@ export function GuideContractFeature() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
-                      className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-lg text-sm"
+                      className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600"
                     >
                       <AlertCircle size={16} /> {error}
                     </motion.div>
@@ -484,23 +518,27 @@ export function GuideContractFeature() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-12 bg-white p-8 rounded-[2rem] shadow-lg border border-black/5 overflow-hidden"
+                    className="overflow-hidden rounded-2xl border border-black/5 bg-white p-5 shadow-sm"
                   >
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div className="mb-5 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                       <div>
-                        <h2 className="text-2xl font-serif italic">
+                        <div className="text-xs font-bold uppercase tracking-wider text-primary">
+                          Kết quả
+                        </div>
+                        <h2 className="mt-1 text-xl font-bold text-slate-950">
                           Thông tin HDV đã trích xuất
                         </h2>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-slate-500">
                           Kết quả từ AI và thông tin nhập tay
                         </p>
                       </div>
                       <button
                         onClick={copyToClipboard}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all shadow-lg active:scale-95 ${copied
-                          ? "bg-emerald-500 text-white shadow-emerald-500/20"
-                          : "bg-primary text-white hover:bg-opacity-90 shadow-primary/20"
-                          }`}
+                        className={`inline-flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-bold shadow-lg transition-colors ${
+                          copied
+                            ? "bg-emerald-500 text-white shadow-emerald-500/20"
+                            : "bg-primary text-white shadow-primary/20 hover:bg-primary/90"
+                        }`}
                       >
                         {copied ? (
                           <>
@@ -519,7 +557,7 @@ export function GuideContractFeature() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse min-w-[1000px]">
                         <thead>
-                          <tr className="bg-gray-50 text-[10px] uppercase tracking-wider text-gray-500 border-b border-gray-100">
+                          <tr className="border-b border-slate-100 bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500">
                             <th className="px-4 py-3 font-bold">Name</th>
                             <th className="px-4 py-3 font-bold">Address</th>
                             <th className="px-4 py-3 font-bold">DoB</th>
@@ -535,7 +573,7 @@ export function GuideContractFeature() {
                           </tr>
                         </thead>
                         <tbody>
-                          <tr className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                          <tr className="border-b border-slate-50 transition-colors hover:bg-slate-50">
                             <td className="px-4 py-4 text-sm font-bold">
                               {extractedInfo.fullName}
                             </td>

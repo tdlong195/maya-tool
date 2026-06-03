@@ -216,13 +216,18 @@ ${isExcel ? JSON.stringify(inputData) : inputData}`;
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="space-y-8"
+      className="space-y-5"
     >
-      <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-secondary/5 border border-black/5">
-        <h2 className="text-2xl font-serif italic text-secondary mb-6">Format Menu Song Ngữ</h2>
+      <div className="overflow-hidden rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+        <div className="mb-5">
+          <div className="text-xs font-bold uppercase tracking-wider text-primary">
+            Format Menu
+          </div>
+          <h2 className="mt-1 text-xl font-bold text-slate-950">Format Menu Song Ngữ</h2>
+        </div>
 
         <div
-          className={`bg-white p-12 rounded-[2rem] shadow-xl shadow-secondary/5 border-2 border-dashed transition-all flex flex-col items-center text-center group cursor-pointer outline-none focus:ring-4 focus:ring-primary/10 h-64 justify-center ${
+          className={`flex h-60 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed bg-white p-8 text-center transition-all outline-none focus:ring-4 focus:ring-primary/10 ${
             isDragging ? "border-primary bg-primary/5" : "border-slate-200 hover:border-primary/50 hover:bg-slate-50"
           }`}
           onDragOver={(event) => {
@@ -256,27 +261,27 @@ ${isExcel ? JSON.stringify(inputData) : inputData}`;
             </div>
           ) : file ? (
             <div className="flex flex-col items-center gap-3">
-              <div className="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center">
-                <CheckCircle2 size={32} />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                <CheckCircle2 size={28} />
               </div>
-              <p className="font-medium text-gray-900 truncate max-w-[300px]">{file.name}</p>
+              <p className="max-w-[300px] truncate text-sm font-bold text-slate-900">{file.name}</p>
               <button
                 onClick={(event) => {
                   event.stopPropagation();
                   setFile(null);
                   setRows([]);
                 }}
-                className="text-sm text-red-600 hover:underline"
+                className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-bold text-red-600 transition-colors hover:bg-red-100"
               >
                 Thay đổi file
               </button>
             </div>
           ) : (
             <>
-              <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
-                <Upload size={32} />
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-inner transition-transform group-hover:scale-105">
+                <Upload size={30} />
               </div>
-              <h3 className="font-bold text-secondary mb-1">Kéo thả file Excel hoặc Word Menu</h3>
+              <h3 className="mb-1 font-bold text-slate-950">Kéo thả file Excel hoặc Word Menu</h3>
               <p className="text-xs text-slate-400 font-medium tracking-wide">
                 AI sẽ tự động dịch và định dạng song ngữ
               </p>
@@ -290,7 +295,7 @@ ${isExcel ? JSON.stringify(inputData) : inputData}`;
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-lg text-sm mt-6"
+              className="mt-5 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600"
             >
               <AlertCircle size={16} /> {error}
             </motion.div>
@@ -298,29 +303,34 @@ ${isExcel ? JSON.stringify(inputData) : inputData}`;
         </AnimatePresence>
 
         {rows.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-12 space-y-6">
-            <div className="flex justify-between items-center">
-              <h3 className="text-2xl font-serif italic text-secondary">Kết quả định dạng</h3>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-8 space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-primary">
+                  Kết quả
+                </div>
+                <h3 className="mt-1 text-xl font-bold text-slate-950">Kết quả định dạng</h3>
+              </div>
               <button
                 onClick={exportToWord}
-                className="bg-primary text-white px-8 py-3 rounded-2xl text-sm font-bold hover:bg-opacity-90 transition-all flex items-center gap-2 shadow-xl shadow-primary/20 scale-105 active:scale-95"
+                className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
               >
                 <FileText size={18} /> Xuất Word
               </button>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-gray-100 font-['Times_New_Roman']">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 font-['Times_New_Roman']">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-50 text-[11pt] uppercase tracking-wider text-gray-500">
+                  <tr className="bg-slate-50 text-[11pt] uppercase tracking-wider text-slate-500">
                     <th className="px-6 py-4 font-semibold w-32">Ngày</th>
                     <th className="px-6 py-4 font-semibold">Bữa trưa (Lunch)</th>
                     <th className="px-6 py-4 font-semibold">Bữa tối (Dinner)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 bg-white">
+                <tbody className="divide-y divide-slate-100 bg-white">
                   {rows.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={idx} className="transition-colors hover:bg-slate-50">
                       <td className="px-6 py-4 text-[11pt] font-medium text-gray-900 align-top">{row.date}</td>
                       <td className="px-6 py-4 text-sm text-gray-800 align-top whitespace-pre-line">{renderMealPreview(row.lunch)}</td>
                       <td className="px-6 py-4 text-sm text-gray-800 align-top whitespace-pre-line">{renderMealPreview(row.dinner)}</td>

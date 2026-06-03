@@ -60,7 +60,7 @@ const toDateInputValue = (value?: string) => {
   return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 };
 
-export function createEmptyGuide(existingGuides: GuideData[]) {
+function createEmptyGuide(existingGuides: GuideData[]) {
   return {
     ...emptyGuide,
     Id: nextGuideCode(existingGuides),

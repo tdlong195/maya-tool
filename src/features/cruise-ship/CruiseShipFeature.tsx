@@ -5,6 +5,20 @@ import { useEffect, useRef, useState } from "react";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 
+const getColumnContentWidth = (key: string, rows: any[]) => {
+  if (key === "TT") return 6;
+
+  const longestTextLength = rows.reduce((maxLength, row) => {
+    const text = String(row[key] ?? "");
+    const longestLine = text
+      .split(/\r?\n/)
+      .reduce((lineMax, line) => Math.max(lineMax, line.trim().length), 0);
+    return Math.max(maxLength, longestLine);
+  }, key.length);
+
+  return Math.min(Math.max(longestTextLength + 2, 10), 55);
+};
+
 export function CruiseShipFeature() {
   const fullInputRef = useRef<HTMLInputElement>(null);
   const summaryInputRef = useRef<HTMLInputElement>(null);
@@ -239,6 +253,10 @@ export function CruiseShipFeature() {
 
         const sheet = workbook.addWorksheet(sheetName);
         const portData = resultsByPort[portName];
+        sheet.columns = dataColumns.map((key) => ({
+          key,
+          width: getColumnContentWidth(key, portData),
+        }));
         let currentGroup = "";
         let counter = 1;
         const actualCounts: Record<string, number> = {};
@@ -284,7 +302,6 @@ export function CruiseShipFeature() {
           sheet.addRow(rowData);
         });
 
-        sheet.columns = dataColumns.map((key) => ({ key, width: key === "TT" ? 6 : 24 }));
         sheet.eachRow((row) => {
           row.eachCell({ includeEmpty: true }, (cell) => {
             cell.border = {
@@ -322,10 +339,10 @@ export function CruiseShipFeature() {
     setDragging: (value: boolean) => void,
     icon: "upload" | "file",
   ) => (
-    <div className="space-y-4">
-      <label className="text-sm font-bold text-gray-600 uppercase tracking-wider block">{label}</label>
+    <div className="space-y-3">
+      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">{label}</label>
       <div
-        className={`bg-white p-8 rounded-[2rem] shadow-xl shadow-secondary/5 border-2 border-dashed transition-all flex flex-col items-center text-center group cursor-pointer outline-none focus:ring-4 focus:ring-primary/10 h-64 justify-center ${
+        className={`flex h-56 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed bg-white p-6 text-center shadow-sm transition-all outline-none focus:ring-4 focus:ring-primary/10 ${
           isDragging ? "border-primary bg-primary/5" : "border-slate-200 hover:border-primary/50 hover:bg-slate-50"
         }`}
         onDragOver={(event) => {
@@ -353,27 +370,27 @@ export function CruiseShipFeature() {
         />
         {file ? (
           <div className="flex flex-col items-center gap-3">
-            <div className="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center">
-              <CheckCircle2 size={32} />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+              <CheckCircle2 size={28} />
             </div>
-            <p className="font-medium text-gray-900 truncate max-w-[200px]">{file.name}</p>
+            <p className="max-w-[220px] truncate text-sm font-bold text-slate-900">{file.name}</p>
             <button
               onClick={(event) => {
                 event.stopPropagation();
                 setFile(null);
               }}
-              className="text-sm text-red-600 hover:underline"
+              className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-bold text-red-600 transition-colors hover:bg-red-100"
             >
               Thay đổi file
             </button>
           </div>
         ) : (
           <>
-            <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
-              {icon === "upload" ? <Upload size={32} /> : <FileText size={32} />}
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-inner transition-transform group-hover:scale-105">
+              {icon === "upload" ? <Upload size={30} /> : <FileText size={30} />}
             </div>
-            <h3 className="font-bold text-secondary mb-1">Kéo thả file Excel</h3>
-            <p className="text-xs text-gray-500">hoặc click để chọn file .xlsx</p>
+            <h3 className="mb-1 font-bold text-slate-950">Kéo thả file Excel</h3>
+            <p className="text-xs text-slate-500">hoặc click để chọn file .xlsx</p>
           </>
         )}
       </div>
@@ -387,18 +404,31 @@ export function CruiseShipFeature() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="space-y-8"
+      className="space-y-5"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+        <div className="mb-5">
+          <div className="text-xs font-bold uppercase tracking-wider text-primary">
+            Tàu biển
+          </div>
+          <h2 className="mt-1 text-xl font-bold text-slate-950">
+            Ghép danh sách khách theo cảng
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Upload file FULL và file TÓM TẮT để xuất danh sách chi tiết.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {uploadCard("1. File danh sách FULL (Excel)", fullList, fullInputRef, setFullList, isDraggingFull, setIsDraggingFull, "upload")}
         {uploadCard("2. File danh sách TÓM TẮT (Excel)", summaryList, summaryInputRef, setSummaryList, isDraggingSummary, setIsDraggingSummary, "file")}
+        </div>
       </div>
 
       {fullList && summaryList && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center pt-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center">
           <button
             disabled={isProcessing}
-            className="bg-primary text-white px-12 py-4 rounded-full font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-primary/30 flex items-center gap-3 disabled:opacity-50 group"
+            className="group inline-flex h-12 items-center gap-3 rounded-xl bg-primary px-8 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 disabled:opacity-50"
             onClick={processCruiseShip}
           >
             {isProcessing ? (
@@ -421,7 +451,7 @@ export function CruiseShipFeature() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-lg text-sm"
+            className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600"
           >
             <AlertCircle size={16} /> {error}
           </motion.div>

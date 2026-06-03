@@ -115,15 +115,21 @@ export function MenuPlannerFeature() {
         return content;
       };
 
+      const dateColumnWidth = { size: 18, type: WidthType.PERCENTAGE };
+      const mealColumnWidth = { size: 41, type: WidthType.PERCENTAGE };
+
       const tableRows = [
         new TableRow({
-          children: ["Date", "Lunch", "Dinner"].map(
-            (header) =>
+          children: ["Date", "Lunch", "Dinner"].map((header, index) => {
+            const width = index === 0 ? dateColumnWidth : mealColumnWidth;
+            return (
               new TableCell({
                 children: [new Paragraph({ children: [new TextRun({ text: header, bold: true })], alignment: AlignmentType.CENTER })],
+                width,
                 verticalAlign: VerticalAlign.CENTER,
-              }),
-          ),
+              })
+            );
+          }),
         }),
         ...menuPlan.map((day, idx) => {
           const dateStr = new Date(day.date).toLocaleDateString("en-US", {
@@ -138,13 +144,16 @@ export function MenuPlannerFeature() {
                   new Paragraph({ children: [new TextRun({ text: `Day ${idx + 1}`, bold: true })], alignment: AlignmentType.CENTER }),
                   new Paragraph({ children: [new TextRun({ text: dateStr })], alignment: AlignmentType.CENTER }),
                 ],
+                width: dateColumnWidth,
                 verticalAlign: VerticalAlign.CENTER,
               }),
               new TableCell({
                 children: day.option === "lunch" || day.option === "both" ? getMealContent(day.lunchRestaurantId, day.lunchMenuName) : [new Paragraph({ text: "N/A" })],
+                width: mealColumnWidth,
               }),
               new TableCell({
                 children: day.option === "dinner" || day.option === "both" ? getMealContent(day.dinnerRestaurantId, day.dinnerMenuName) : [new Paragraph({ text: "N/A" })],
+                width: mealColumnWidth,
               }),
             ],
           });
@@ -215,16 +224,16 @@ export function MenuPlannerFeature() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="space-y-8"
+      className="space-y-5"
     >
-      <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-secondary/5 border border-black/5">
+      <div className="overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
         <AnimatePresence>
           {error && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-lg text-sm mt-6"
+              className="m-4 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600"
             >
               <AlertCircle size={16} /> {error}
             </motion.div>
@@ -232,23 +241,27 @@ export function MenuPlannerFeature() {
         </AnimatePresence>
 
         {restaurants.length > 0 && (
-          <div className="space-y-10">
-            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3 mb-6">
-                <Calendar className="text-primary" size={28} /> Tạo lịch menu
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-4">
-                <input className="px-4 py-3 rounded-xl border border-gray-200" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
-                <input className="px-4 py-3 rounded-xl border border-gray-200" type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
+          <div className="space-y-6 bg-slate-50/60 p-4 sm:p-5">
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+              <div className="mb-4 flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+                  <Calendar size={16} />
+                  Lịch thực đơn
+                </div>
+                <h2 className="text-xl font-bold text-slate-950">Tạo lịch menu</h2>
+              </div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_auto]">
+                <input className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
+                <input className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10" type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
                 <button
                   onClick={generateMenuPlan}
                   disabled={!startDate || !endDate}
-                  className="bg-secondary text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm font-bold text-white transition-colors hover:bg-secondary/90 disabled:opacity-50"
                 >
                   <Plus size={18} /> Tạo lịch
                 </button>
               </div>
-            </div>
+            </section>
 
             {menuPlan.length > 0 && (
               <div className="space-y-4">
@@ -270,12 +283,12 @@ export function MenuPlannerFeature() {
                   return (
                     <div
                       key={day.date}
-                      className={`rounded-2xl border bg-white shadow-sm overflow-hidden ${
+                      className={`overflow-hidden rounded-2xl border bg-white shadow-sm ${
                         dayHasIssue ? "border-red-200" : "border-slate-200"
                       }`}
                     >
                     <div className="grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)]">
-                      <div className="border-b border-slate-100 bg-slate-50 p-5 xl:border-b-0 xl:border-r">
+                      <div className="border-b border-slate-100 bg-white p-4 xl:border-b-0 xl:border-r xl:bg-slate-50">
                         <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
                           Day {idx + 1}
                         </div>
@@ -298,7 +311,7 @@ export function MenuPlannerFeature() {
                         </select>
                       </div>
                       <div
-                        className={`grid gap-4 p-5 ${
+                        className={`grid gap-4 p-4 ${
                           day.option === "both"
                             ? "lg:grid-cols-2"
                             : "lg:grid-cols-1"
@@ -342,9 +355,9 @@ export function MenuPlannerFeature() {
                   <button
                     onClick={exportMenuPlan}
                     disabled={!isMenuPlanComplete}
-                    className="bg-primary text-white px-12 py-4 rounded-full font-bold text-lg flex items-center gap-3 disabled:opacity-50"
+                    className="inline-flex h-12 items-center gap-3 rounded-xl bg-primary px-8 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 disabled:opacity-50"
                   >
-                    <Download size={22} /> Xuất Menu (.docx)
+                    <Download size={20} /> Xuất Menu (.docx)
                   </button>
                 </div>
               </div>
@@ -352,9 +365,15 @@ export function MenuPlannerFeature() {
 
             <div className="space-y-6">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                  <Database className="text-primary" size={28} /> Cơ sở dữ liệu Nhà hàng
-                </h2>
+                <div>
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+                    <Database size={16} />
+                    Database
+                  </div>
+                  <h2 className="mt-1 text-xl font-bold text-slate-950">
+                    Cơ sở dữ liệu Nhà hàng
+                  </h2>
+                </div>
                 <button
                   type="button"
                   onClick={() => {
@@ -364,23 +383,23 @@ export function MenuPlannerFeature() {
                       }),
                     );
                   }}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
                 >
                   <Database size={18} />
                   Quản lý nhà hàng
                 </button>
               </div>
-              <div className="flex flex-col md:flex-row gap-4 bg-gray-50 p-6 rounded-2xl">
+              <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:flex-row">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input
                     value={menuSearch}
                     onChange={(event) => setMenuSearch(event.target.value)}
                     placeholder="Tìm nhà hàng..."
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200"
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10"
                   />
                 </div>
-                <select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)} className="px-4 py-3 rounded-xl border border-gray-200">
+                <select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)} className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-primary/10">
                   <option value="">Tất cả thành phố</option>
                   {cities.map((city) => (
                     <option key={city} value={city}>
@@ -389,7 +408,7 @@ export function MenuPlannerFeature() {
                   ))}
                 </select>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 {filteredRestaurants.map((restaurant) => {
                     const restaurantMenus = menus.filter(
                       (menu) => menu.restaurantId === restaurant.id,
@@ -400,14 +419,14 @@ export function MenuPlannerFeature() {
                         key={restaurant.id}
                         type="button"
                         onClick={() => setMenuPreviewRestaurantId(restaurant.id)}
-                        className="p-5 rounded-2xl border border-gray-100 bg-white text-left shadow-sm transition-all hover:border-primary/30 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/10"
+                        className="rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-all hover:border-primary/30 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/10"
                       >
-                        <h3 className="font-bold text-secondary flex items-center gap-2">
+                        <h3 className="flex items-center gap-2 font-bold text-secondary">
                           <Utensils size={18} /> {restaurant.name}
                         </h3>
-                        <p className="text-sm text-gray-500">{restaurant.city}</p>
-                        <p className="text-sm text-gray-500">{restaurant.address}</p>
-                        <span className="mt-3 inline-flex rounded-xl bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700">
+                        <p className="mt-1 text-sm text-slate-500">{restaurant.city}</p>
+                        <p className="line-clamp-2 text-sm text-slate-500">{restaurant.address}</p>
+                        <span className="mt-3 inline-flex rounded-xl bg-slate-100 px-3 py-1.5 text-sm font-bold text-slate-700">
                           {restaurantMenus.length} menu
                         </span>
                       </button>
@@ -541,7 +560,9 @@ function MealSelectors({
       }`}
     >
       <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="font-bold text-slate-900">{label}</div>
+        <div className="text-sm font-bold uppercase tracking-wider text-slate-600">
+          {label}
+        </div>
         <div className="h-2 w-2 rounded-full bg-primary" />
       </div>
       <div className="grid grid-cols-1 gap-3">

@@ -4,19 +4,22 @@ Use when summarizing completed changes.
 
 ## Format
 
-Keep the summary concise:
+```text
+Summary:
+- ...
 
-- What changed.
-- Where it changed.
-- Verification performed.
-- Any residual warnings or follow-up risks.
+Verification:
+- ...
 
-## Example
+Notes:
+- ...
+```
 
-Updated `src/app/App.tsx` so the top navigation stays sticky while scrolling and Database uses the same top menu layout as the other screens.
+## Rules
 
-Verified with:
-
-- `npm run lint`
-- `npm run build`
-
+- Keep it concise.
+- Mention user-visible behavior first.
+- Mention data migration or data-loss prevention if relevant.
+- Include commands run.
+- Mention untested areas honestly.
+- For docs-only changes, say no runtime checks were needed.

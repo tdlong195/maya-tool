@@ -122,20 +122,23 @@ export function TripNoteFeature() {
       exit={{ opacity: 0, y: -20 }}
       className="max-w-4xl mx-auto"
     >
-      <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-secondary/5 border border-black/5 p-8 md:p-12">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-serif italic text-secondary mb-3">
+      <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm md:p-6">
+        <div className="mb-6 text-center">
+          <div className="text-xs font-bold uppercase tracking-wider text-primary">
+            Trip note
+          </div>
+          <h2 className="mt-1 text-2xl font-bold text-slate-950">
             Xử lý Trip Note
           </h2>
-          <p className="text-slate-500">
+          <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-500">
             Remove toàn bộ hình ảnh trong file Trip Note để tối ưu dung lượng và định dạng.
           </p>
         </div>
 
         <div
-          className={`relative group cursor-pointer transition-all duration-500 rounded-[2rem] border-2 border-dashed flex flex-col items-center justify-center py-16 px-6 ${
+          className={`group relative flex min-h-64 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-all duration-300 ${
             isDragging
-              ? "border-primary bg-primary/5 scale-[0.99] ring-8 ring-primary/5"
+              ? "border-primary bg-primary/5 ring-4 ring-primary/5"
               : file
                 ? "border-secondary/30 bg-secondary/5"
                 : "border-slate-200 hover:border-primary/50 hover:bg-slate-50"
@@ -162,10 +165,10 @@ export function TripNoteFeature() {
 
           {file ? (
             <div className="flex flex-col items-center animate-in fade-in zoom-in duration-300">
-              <div className="bg-secondary/10 p-5 rounded-3xl text-secondary mb-4">
-                <FileText size={48} />
+              <div className="mb-4 rounded-2xl bg-secondary/10 p-4 text-secondary">
+                <FileText size={36} />
               </div>
-              <span className="font-medium text-secondary text-lg mb-1 max-w-[300px] truncate">
+              <span className="mb-1 max-w-[300px] truncate text-base font-bold text-secondary">
                 {file.name}
               </span>
               <span className="text-xs text-slate-400">
@@ -177,17 +180,17 @@ export function TripNoteFeature() {
                   setFile(null);
                   if (inputRef.current) inputRef.current.value = "";
                 }}
-                className="mt-6 text-sm text-red-500 hover:underline font-medium"
+                className="mt-5 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-bold text-red-600 transition-colors hover:bg-red-100"
               >
                 Chọn file khác
               </button>
             </div>
           ) : (
             <>
-              <div className="bg-primary/10 p-5 rounded-3xl text-primary mb-6 transition-transform group-hover:scale-110 duration-300">
-                <Upload size={40} />
+              <div className="mb-5 rounded-2xl bg-primary/10 p-4 text-primary transition-transform duration-300 group-hover:scale-105">
+                <Upload size={34} />
               </div>
-              <p className="text-lg font-medium text-slate-700 mb-2">
+              <p className="mb-2 text-lg font-bold text-slate-800">
                 Kéo thả file Trip Note vào đây
               </p>
               <p className="text-sm text-slate-400">Hỗ trợ định dạng .docx và .doc</p>
@@ -196,19 +199,19 @@ export function TripNoteFeature() {
         </div>
 
         {error && (
-          <div className="mt-6 flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-lg text-sm">
+          <div className="mt-5 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
             <AlertCircle size={16} /> {error}
           </div>
         )}
 
-        <div className="mt-12 flex justify-center">
+        <div className="mt-6 flex justify-center">
           <button
             onClick={processTripNote}
             disabled={!file || isProcessing}
-            className={`px-12 py-4 rounded-2xl font-bold text-lg flex items-center gap-3 transition-all duration-300 shadow-xl ${
+            className={`inline-flex h-12 items-center gap-3 rounded-xl px-8 text-sm font-bold shadow-lg transition-colors ${
               !file || isProcessing
                 ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                : "bg-primary text-white hover:scale-105 active:scale-95 shadow-primary/30"
+                : "bg-primary text-white shadow-primary/20 hover:bg-primary/90"
             }`}
           >
             {isProcessing ? (
@@ -225,7 +228,7 @@ export function TripNoteFeature() {
           </button>
         </div>
 
-        <div className="mt-8 bg-amber-50 rounded-2xl p-4 border border-amber-100 flex gap-3 text-amber-800 text-sm italic">
+        <div className="mt-6 flex gap-3 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800">
           <AlertCircle size={18} className="shrink-0 mt-0.5" />
           <p>
             Lưu ý: File .doc cũ có thể bị lỗi khi xử lý. Nếu file của bạn là .doc, hãy Save As sang .docx để đạt hiệu quả tốt nhất.

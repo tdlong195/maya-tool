@@ -526,7 +526,11 @@ export function ExistingGuidesFeature() {
             >
               {guideList.length === 0 ? (
                 <div
-                  className={`bg-white p-12 rounded-[2rem] shadow-xl shadow-secondary/5 border-2 border-dashed transition-all flex flex-col items-center text-center group cursor-pointer outline-none focus:ring-4 focus:ring-primary/10 h-64 justify-center ${isDraggingGuideList ? "border-primary bg-primary/5" : "border-slate-200 hover:border-primary/50 hover:bg-slate-50"}`}
+                  className={`flex min-h-64 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed bg-white p-8 text-center shadow-sm transition-all outline-none focus:ring-4 focus:ring-primary/10 ${
+                    isDraggingGuideList
+                      ? "border-primary bg-primary/5"
+                      : "border-slate-200 hover:border-primary/50 hover:bg-slate-50"
+                  }`}
                   onDragOver={(e) => {
                     e.preventDefault();
                     setIsDraggingGuideList(true);
@@ -554,27 +558,27 @@ export function ExistingGuidesFeature() {
                       }
                     }}
                   />
-                  <div className="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-inner">
-                    <Upload size={40} />
+                  <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-inner transition-transform group-hover:scale-105">
+                    <Upload size={32} />
                   </div>
-                  <h2 className="text-2xl font-serif italic mb-2">
+                  <h2 className="mb-2 text-xl font-bold text-slate-950">
                     Tải lên danh sách HDV
                   </h2>
-                  <p className="text-gray-500 max-w-md mx-auto">
+                  <p className="mx-auto max-w-md text-sm leading-6 text-slate-500">
                     Kéo thả file Excel (.xlsx) hoặc CSV chứa thông tin hướng dẫn
                     viên để bắt đầu.
                   </p>
                 </div>
               ) : (
                 <>
-                  <div className="bg-white rounded-[2rem] shadow-sm border border-black/5 overflow-hidden">
-                    <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-                      <div className="flex flex-col md:flex-row gap-4">
-                        <div className="flex-1 relative">
+                  <div className="overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
+                    <div className="border-b border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+                      <div className="flex flex-col gap-3 md:flex-row">
+                        <div className="relative flex-1">
                           <input
                             type="text"
                             placeholder="Nhập tên HDV..."
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-medium"
+                            className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-semibold text-slate-700 transition-all focus:outline-none focus:ring-4 focus:ring-primary/10"
                             value={guideSearch}
                             onChange={(e) => setGuideSearch(e.target.value)}
                           />
@@ -584,7 +588,7 @@ export function ExistingGuidesFeature() {
                           />
                         </div>
                         <select
-                          className="px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-primary/10 bg-white font-medium transition-all"
+                          className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-all focus:outline-none focus:ring-4 focus:ring-primary/10"
                           value={cityFilter}
                           onChange={(e) => setCityFilter(e.target.value)}
                         >
@@ -604,7 +608,7 @@ export function ExistingGuidesFeature() {
                                 setGuideSearch("");
                                 setCityFilter("");
                               }}
-                              className="px-4 py-2.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl transition-colors text-sm font-medium"
+                              className="h-11 rounded-xl bg-slate-100 px-4 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-200"
                             >
                               Xóa lọc
                             </button>
@@ -612,7 +616,7 @@ export function ExistingGuidesFeature() {
                           {selectedGuides.length > 0 && (
                             <button
                               onClick={() => setSelectedGuides([])}
-                              className="px-4 py-2.5 bg-amber-100 text-amber-800 hover:bg-amber-200 rounded-xl transition-colors text-sm font-medium border border-amber-200/50"
+                              className="h-11 rounded-xl border border-amber-200/50 bg-amber-100 px-4 text-sm font-bold text-amber-800 transition-colors hover:bg-amber-200"
                             >
                               Xoá guides đã chọn
                             </button>
@@ -648,20 +652,20 @@ export function ExistingGuidesFeature() {
 
                     <div className="overflow-x-auto">
                       {!guideSearch && !cityFilter ? (
-                        <div className="p-20 text-center">
-                          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <div className="p-12 text-center">
+                          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50">
                             <Users className="text-gray-300" size={32} />
                           </div>
-                          <h3 className="text-lg font-medium text-gray-900">
+                          <h3 className="text-lg font-bold text-slate-950">
                             Sẵn sàng tìm kiếm
                           </h3>
-                          <p className="text-gray-500">
+                          <p className="text-sm text-slate-500">
                             Vui lòng nhập tên, ID hoặc chọn thành phố để lọc
                             danh sách HDV.
                           </p>
                           <button
                             onClick={() => setIsAddGuideOpen(true)}
-                            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20"
+                            className="mt-5 inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
                           >
                             <UserPlus size={18} />
                             Thêm mới HDV
@@ -670,7 +674,7 @@ export function ExistingGuidesFeature() {
                       ) : (
                         <table className="w-full text-left border-collapse">
                           <thead>
-                            <tr className="bg-gray-50/50 text-xs uppercase tracking-wider text-gray-500">
+                            <tr className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                               <th className="px-6 py-4 font-semibold">ID</th>
                               <th className="px-6 py-4 font-semibold">
                                 Thành phố
@@ -833,13 +837,13 @@ export function ExistingGuidesFeature() {
                     {selectedGuides.length > 0 && (
                       <div
                         ref={tourInfoRef}
-                        className="p-6 bg-gradient-to-r from-secondary to-slate-700 text-white flex justify-between items-center shadow-inner"
+                        className="flex items-center justify-between bg-secondary px-5 py-4 text-white shadow-inner"
                       >
                         <div>
                           <p className="text-xs opacity-80 uppercase tracking-widest font-bold">
                             Đã chọn {selectedGuides.length} hướng dẫn viên
                           </p>
-                          <h3 className="text-xl font-serif italic max-w-2xl truncate">
+                          <h3 className="mt-1 max-w-2xl truncate text-lg font-bold">
                             {selectedGuides.map((g) => g.Name).join(", ")}
                           </h3>
                         </div>
@@ -852,11 +856,11 @@ export function ExistingGuidesFeature() {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="p-8 bg-gray-50 border-t border-gray-100"
+                          className="border-t border-slate-200 bg-slate-50/70 p-5"
                         >
-                          <div className="max-w-2xl mx-auto">
+                          <div className="mx-auto max-w-3xl">
                             {!isTourFormComplete && (
-                                <div className="flex items-center gap-2 text-red-500 bg-red-50 px-6 py-3 rounded-2xl border border-red-100 animate-pulse">
+                                <div className="mb-5 flex items-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
                                   <AlertCircle size={20} />
                                   <span className="font-bold">
                                     Vui lòng điền đầy đủ các thông tin bên dưới.
@@ -864,7 +868,7 @@ export function ExistingGuidesFeature() {
                                 </div>
                               )}
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
                               <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                                   Số lượng khách
@@ -873,7 +877,7 @@ export function ExistingGuidesFeature() {
                                 <input
                                   type="number"
                                   placeholder="Số lượng khách"
-                                  className={`w-full px-4 py-2.5 rounded-xl border border-black/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 bg-white ${!guestCount || parseInt(guestCount) <= 0
+                                  className={`h-11 w-full rounded-xl border bg-white px-4 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/10 ${!guestCount || parseInt(guestCount) <= 0
                                     ? "border-red-500 border-2 text-gray-400"
                                     : "border-black/10"
                                     }`}
@@ -891,7 +895,7 @@ export function ExistingGuidesFeature() {
                                 </label>
                                 <input
                                   type="date"
-                                  className={`w-full px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-4 focus:ring-primary/10 bg-white transition-all ${!startDate
+                                  className={`h-11 w-full rounded-xl border bg-white px-4 text-sm font-semibold text-slate-700 transition-all focus:outline-none focus:ring-4 focus:ring-primary/10 ${!startDate
                                     ? "border-red-500 border-2 text-gray-400"
                                     : "border-slate-200"
                                     }`}
@@ -915,7 +919,7 @@ export function ExistingGuidesFeature() {
                                 </label>
                                 <input
                                   type="date"
-                                  className={`w-full px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-4 focus:ring-primary/10 bg-white transition-all ${!endDate
+                                  className={`h-11 w-full rounded-xl border bg-white px-4 text-sm font-semibold text-slate-700 transition-all focus:outline-none focus:ring-4 focus:ring-primary/10 ${!endDate
                                     ? "border-red-500 border-2 text-gray-400"
                                     : "border-slate-200"
                                     }`}
@@ -937,7 +941,7 @@ export function ExistingGuidesFeature() {
                               </div>
                             </div>
 
-                            <div className="space-y-1.5 mb-6">
+                            <div className="mb-5 space-y-1.5">
                               <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                                 Tour Code
                                 <span className="text-red-600">(*)</span>
@@ -945,7 +949,7 @@ export function ExistingGuidesFeature() {
                               <input
                                 type="text"
                                 placeholder="Nhập mã tour (ví dụ: HAN-SGN-01...)"
-                                className={`w-full px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-indigo-500/20 bg-white ${!tourCode.trim()
+                                className={`h-11 w-full rounded-xl border bg-white px-4 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/10 ${!tourCode.trim()
                                   ? "border-red-500 border-2"
                                   : "border-black/10"
                                   }`}
@@ -954,11 +958,11 @@ export function ExistingGuidesFeature() {
                               />
                             </div>
 
-                            <div className="space-y-1.5 mb-6">
+                            <div className="mb-5 space-y-1.5">
                               <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">
                                 Loại tour
                               </label>
-                              <div className="flex gap-6">
+                              <div className="flex flex-wrap gap-3">
                                 <label className="flex items-center gap-2 cursor-pointer group">
                                   <input
                                     type="radio"
@@ -994,7 +998,7 @@ export function ExistingGuidesFeature() {
 
                             {tourType === "classic" &&
                               selectedGuides.length > 1 ? (
-                              <div className="space-y-6 mb-6">
+                              <div className="mb-5 space-y-5">
                                 {selectedGuides.map((guide) => (
                                   <div key={guide.Id} className="space-y-1.5">
                                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
@@ -1006,7 +1010,7 @@ export function ExistingGuidesFeature() {
                                     </label>
                                     <textarea
                                       placeholder={`Nhập lịch trình tour riêng cho ${guide.Name}...`}
-                                      className={`w-full px-4 py-3 rounded-2xl border border-black/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 bg-white min-h-[150px] resize-y font-sans text-sm leading-relaxed ${!(
+                                      className={`min-h-[140px] w-full resize-y rounded-2xl border bg-white px-4 py-3 font-sans text-sm leading-relaxed focus:outline-none focus:ring-4 focus:ring-primary/10 ${!(
                                         guideTourPrograms[guide.Id] || ""
                                       ).trim()
                                         ? "border-red-500 border-2"
@@ -1024,14 +1028,14 @@ export function ExistingGuidesFeature() {
                                 ))}
                               </div>
                             ) : (
-                              <div className="space-y-1.5 mb-6">
+                              <div className="mb-5 space-y-1.5">
                                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                                   Chi tiết chương trình tour
                                   <span className="text-red-600">(*)</span>
                                 </label>
                                 <textarea
                                   placeholder="Nhập lịch trình tour tại đây (ví dụ: Ngày 1: Hà Nội - Hạ Long...)"
-                                  className={`w-full px-4 py-3 rounded-2xl border border-black/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 bg-white min-h-[200px] resize-y font-sans text-sm leading-relaxed ${!tourProgramText.trim()
+                                  className={`min-h-[180px] w-full resize-y rounded-2xl border bg-white px-4 py-3 font-sans text-sm leading-relaxed focus:outline-none focus:ring-4 focus:ring-primary/10 ${!tourProgramText.trim()
                                     ? "border-red-500 border-2"
                                     : "border-black/10"
                                     }`}
@@ -1046,11 +1050,11 @@ export function ExistingGuidesFeature() {
                             <motion.div
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
-                              className="mt-8 flex justify-center"
+                              className="mt-6 flex justify-center"
                             >
                               <button
                                 disabled={isExporting || !isTourFormComplete}
-                                className="bg-primary text-white px-12 py-4 rounded-full font-bold hover:bg-opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                                className="inline-flex h-12 items-center gap-3 rounded-xl bg-primary px-8 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                                 onClick={handleExportTourOrder}
                               >
                                 {isExporting ? (
@@ -1087,9 +1091,8 @@ export function ExistingGuidesFeature() {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={scrollToTourInfo}
-            className="fixed bottom-4 right-6 z-50 flex items-center justify-center w-14 h-14 bg-linear-to-r from-pink-700/50 to-purple-700/70 text-white rounded-full shadow-2xl shadow-amber-500/40 group overflow-hidden animate-bounce"
+            className="fixed bottom-4 right-6 z-50 flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-secondary text-white shadow-xl shadow-secondary/20 transition-colors hover:bg-secondary/90"
           >
-            <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
             {isScrolledDown ? (
               <ArrowUp className="w-6 h-6 relative z-10" />
             ) : (

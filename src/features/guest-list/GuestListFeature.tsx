@@ -232,11 +232,11 @@ Nếu không tìm thấy trường nào, trả "_".`;
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="space-y-8"
+      className="space-y-5"
     >
-      <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-secondary/5 border border-black/5">
+      <div className="overflow-hidden rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
         <div
-          className={`bg-white p-12 rounded-[2rem] border-2 border-dashed transition-all flex flex-col items-center text-center group cursor-pointer min-h-72 justify-center ${
+          className={`flex min-h-60 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed bg-white p-8 text-center transition-all ${
             isDragging ? "border-primary bg-primary/5" : "border-slate-200 hover:border-primary/50 hover:bg-slate-50"
           }`}
           onDragOver={(event) => {
@@ -262,22 +262,24 @@ Nếu không tìm thấy trường nào, trả "_".`;
               event.target.value = "";
             }}
           />
-          <Upload size={44} className="text-primary mb-4" />
-          <h3 className="font-bold text-secondary mb-1">Kéo thả hoặc chọn file khách</h3>
-          <p className="text-sm text-gray-500">Hỗ trợ ảnh hoặc PDF hộ chiếu/CCCD, có thể chọn nhiều file</p>
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Upload size={30} />
+          </div>
+          <h3 className="mb-1 text-lg font-bold text-slate-950">Kéo thả hoặc chọn file khách</h3>
+          <p className="max-w-md text-sm leading-6 text-slate-500">Hỗ trợ ảnh hoặc PDF hộ chiếu/CCCD, có thể chọn nhiều file</p>
         </div>
 
         {files.length > 0 && (
-          <div className="mt-8 space-y-6">
+          <div className="mt-6 space-y-5">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-secondary">{files.length} file đã chọn</h3>
-              <button onClick={clearAll} className="text-red-600 hover:underline text-sm flex items-center gap-2">
+              <h3 className="font-bold text-slate-950">{files.length} file đã chọn</h3>
+              <button onClick={clearAll} className="inline-flex h-10 items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 text-sm font-bold text-red-600 transition-colors hover:bg-red-100">
                 <Trash2 size={16} /> Xoá tất cả
               </button>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               {files.map((file, idx) => (
-                <div key={`${file.name}-${idx}`} className="relative rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 aspect-[4/3]">
+                <div key={`${file.name}-${idx}`} className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
                   {previews[idx] ? (
                     <img src={previews[idx] || ""} alt={`Guest ${idx + 1}`} className="w-full h-full object-cover" />
                   ) : (
@@ -291,7 +293,7 @@ Nếu không tìm thấy trường nào, trả "_".`;
                   )}
                   <button
                     onClick={() => removeFile(idx)}
-                    className="absolute top-2 right-2 bg-white/90 text-red-600 rounded-full p-2 shadow"
+                    className="absolute right-2 top-2 rounded-xl bg-white/90 p-2 text-red-600 shadow-sm transition-colors hover:bg-red-50"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -302,7 +304,7 @@ Nếu không tìm thấy trường nào, trả "_".`;
               <button
                 onClick={processGuestList}
                 disabled={isProcessing}
-                className="bg-primary text-white px-12 py-4 rounded-full font-bold text-lg flex items-center gap-3 disabled:opacity-50"
+                className="inline-flex h-12 items-center gap-3 rounded-xl bg-primary px-8 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 disabled:opacity-50"
               >
                 {isProcessing ? (
                   <>
@@ -325,7 +327,7 @@ Nếu không tìm thấy trường nào, trả "_".`;
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-lg text-sm mt-6"
+              className="mt-5 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600"
             >
               <AlertCircle size={16} /> {error}
             </motion.div>
@@ -333,23 +335,28 @@ Nếu không tìm thấy trường nào, trả "_".`;
         </AnimatePresence>
 
         {guests.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-10 space-y-6">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-8 space-y-5">
             <div className="flex flex-wrap justify-between items-center gap-3">
-              <h3 className="text-2xl font-serif italic text-secondary">Danh sách khách</h3>
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-primary">
+                  Kết quả
+                </div>
+                <h3 className="mt-1 text-xl font-bold text-slate-950">Danh sách khách</h3>
+              </div>
               <div className="flex gap-3">
-                <button onClick={copyGuestsToClipboard} className="bg-indigo-600 text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2">
+                <button onClick={copyGuestsToClipboard} className="inline-flex h-11 items-center gap-2 rounded-xl bg-secondary px-4 text-sm font-bold text-white transition-colors hover:bg-secondary/90">
                   {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
                   {copied ? "Đã copy" : "Copy"}
                 </button>
-                <button onClick={exportGuestsToExcel} className="bg-primary text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2">
+                <button onClick={exportGuestsToExcel} className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-white transition-colors hover:bg-primary/90">
                   <Download size={18} /> Xuất Excel
                 </button>
               </div>
             </div>
-            <div className="overflow-x-auto rounded-2xl border border-gray-100">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
+                  <tr className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                     {["STT", "Họ", "Tên", "Giới tính", "Ngày sinh", "Quốc tịch", "Số giấy tờ", "Hết hạn"].map((header) => (
                       <th key={header} className="px-4 py-3 font-semibold">
                         {header}
@@ -357,9 +364,9 @@ Nếu không tìm thấy trường nào, trả "_".`;
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-slate-100">
                   {guests.map((guest, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
+                    <tr key={idx} className="hover:bg-slate-50">
                       <td className="px-4 py-3">{idx + 1}</td>
                       <td className="px-4 py-3">{guest.lastName}</td>
                       <td className="px-4 py-3">{guest.firstName}</td>

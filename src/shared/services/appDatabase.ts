@@ -10,8 +10,6 @@ const supabase =
     ? createClient(supabaseUrl, supabaseAnonKey)
     : null;
 
-export const isSupabaseConfigured = () => Boolean(supabase);
-
 const toGuideRow = (guide: GuideData) => ({
   id: guide.Id,
   city: guide.City,
@@ -89,6 +87,9 @@ const fromMenuRow = (row: any): RestaurantMenu => ({
   note: row.note || "",
 });
 
+const getMenuKey = (menu: RestaurantMenu) =>
+  `${menu.restaurantId}::${menu.menuName}`;
+
 export const appDatabase = {
   async getGuides() {
     if (!supabase) {
@@ -134,6 +135,34 @@ export const appDatabase = {
     }
   },
 
+  async upsertGuides(guides: GuideData[]) {
+    if (!supabase) {
+      const byId = new Map(localDatabase.getGuides().map((guide) => [guide.Id, guide]));
+      guides.forEach((guide) => byId.set(guide.Id, guide));
+      localDatabase.saveGuides(Array.from(byId.values()));
+      return;
+    }
+    if (guides.length === 0) return;
+    const { error } = await supabase.from("guides").upsert(guides.map(toGuideRow));
+    if (error) throw error;
+  },
+
+  async upsertGuide(guide: GuideData) {
+    await this.upsertGuides([guide]);
+  },
+
+  async deleteGuides(ids: string[]) {
+    if (!supabase) {
+      localDatabase.saveGuides(
+        localDatabase.getGuides().filter((guide) => !ids.includes(guide.Id)),
+      );
+      return;
+    }
+    if (ids.length === 0) return;
+    const { error } = await supabase.from("guides").delete().in("id", ids);
+    if (error) throw error;
+  },
+
   async getRestaurants() {
     if (!supabase) return localDatabase.getRestaurants();
     const { data, error } = await supabase
@@ -172,6 +201,58 @@ export const appDatabase = {
         .in("id", idsToDelete);
       if (deleteError) throw deleteError;
     }
+  },
+
+  async upsertRestaurants(restaurants: Restaurant[]) {
+    if (!supabase) {
+      const byId = new Map(
+        localDatabase.getRestaurants().map((restaurant) => [
+          restaurant.id,
+          restaurant,
+        ]),
+      );
+      restaurants.forEach((restaurant) => byId.set(restaurant.id, restaurant));
+      localDatabase.saveRestaurants(Array.from(byId.values()));
+      return;
+    }
+    if (restaurants.length === 0) return;
+    const { error } = await supabase
+      .from("restaurants")
+      .upsert(restaurants.map(toRestaurantRow));
+    if (error) throw error;
+  },
+
+  async upsertRestaurant(restaurant: Restaurant) {
+    await this.upsertRestaurants([restaurant]);
+  },
+
+  async deleteRestaurantsWithMenus(ids: string[]) {
+    if (!supabase) {
+      localDatabase.saveRestaurantMenus(
+        localDatabase
+          .getRestaurantMenus()
+          .filter((menu) => !ids.includes(menu.restaurantId)),
+      );
+      localDatabase.saveRestaurants(
+        localDatabase
+          .getRestaurants()
+          .filter((restaurant) => !ids.includes(restaurant.id)),
+      );
+      return;
+    }
+    if (ids.length === 0) return;
+
+    const { error: menuDeleteError } = await supabase
+      .from("restaurant_menus")
+      .delete()
+      .in("restaurant_id", ids);
+    if (menuDeleteError) throw menuDeleteError;
+
+    const { error: restaurantDeleteError } = await supabase
+      .from("restaurants")
+      .delete()
+      .in("id", ids);
+    if (restaurantDeleteError) throw restaurantDeleteError;
   },
 
   async getRestaurantMenus() {
@@ -214,6 +295,50 @@ export const appDatabase = {
         .eq("restaurant_id", row.restaurant_id)
         .eq("menu_name", row.menu_name);
       if (deleteError) throw deleteError;
+    }
+  },
+
+  async upsertRestaurantMenus(menus: RestaurantMenu[]) {
+    if (!supabase) {
+      const byKey = new Map(
+        localDatabase
+          .getRestaurantMenus()
+          .map((menu) => [getMenuKey(menu), menu]),
+      );
+      menus.forEach((menu) => byKey.set(getMenuKey(menu), menu));
+      localDatabase.saveRestaurantMenus(Array.from(byKey.values()));
+      return;
+    }
+    if (menus.length === 0) return;
+    const { error } = await supabase
+      .from("restaurant_menus")
+      .upsert(menus.map(toMenuRow));
+    if (error) throw error;
+  },
+
+  async upsertRestaurantMenu(menu: RestaurantMenu) {
+    await this.upsertRestaurantMenus([menu]);
+  },
+
+  async deleteRestaurantMenus(keys: Array<{ restaurantId: string; menuName: string }>) {
+    if (!supabase) {
+      const keySet = new Set(
+        keys.map((key) => `${key.restaurantId}::${key.menuName}`),
+      );
+      localDatabase.saveRestaurantMenus(
+        localDatabase
+          .getRestaurantMenus()
+          .filter((menu) => !keySet.has(getMenuKey(menu))),
+      );
+      return;
+    }
+    for (const key of keys) {
+      const { error } = await supabase
+        .from("restaurant_menus")
+        .delete()
+        .eq("restaurant_id", key.restaurantId)
+        .eq("menu_name", key.menuName);
+      if (error) throw error;
     }
   },
 };
